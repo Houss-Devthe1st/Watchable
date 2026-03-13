@@ -1,50 +1,97 @@
-# Welcome to your Expo app 👋
+# 🎬 Watchable
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A sleek React Native movie app built with Expo. Browse trending and popular films, search by title or genre, save your favourites, and track your personal watch history with star ratings.
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+- 🏠 **Home** — Trending movies carousel + full grid with genre filter chips
+- 🔍 **Search** — Real-time movie search powered by TMDB
+- 🔖 **Saved** — Bookmarked movies with one-tap remove
+- 👁️ **Watched** — Personal watch history with 1–5 ⭐ ratings and total watch-time stats
+- 🎥 **Movie Detail** — Full info, YouTube trailer, cast list, director, and save/watched actions
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🛠️ Tech Stack
 
-In the output, you'll find options to open the app in a
+| Layer | Library |
+|---|---|
+| Framework | Expo SDK 54 / React Native 0.81 |
+| Routing | Expo Router (file-based) |
+| Styling | NativeWind v4 (Tailwind CSS) |
+| Data | TMDB API (Bearer token) |
+| Persistence | AsyncStorage |
+| Gestures | react-native-gesture-handler v2 |
+| Animations | react-native-reanimated v4 |
+| Trailers | react-native-youtube-iframe |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🚀 Getting Started
 
-## Get a fresh project
-
-When you're ready, run:
+### 1. Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Set up environment variables
 
-## Learn more
+Create a `.env.local` file in the root:
 
-To learn more about developing your project with Expo, look at the following resources:
+```
+EXPO_PUBLIC_MOVIE_API_KEY=your_tmdb_bearer_token
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Get a free API key at [themoviedb.org](https://www.themoviedb.org/settings/api).
 
-## Join the community
+### 3. Run the app
 
-Join our community of developers creating universal apps.
+```bash
+npx expo start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Press `a` for Android emulator, `i` for iOS simulator, or scan the QR code with Expo Go.
+
+---
+
+## 📦 Building for Device
+
+**Preview APK** — install directly on Android:
+```bash
+eas build -p android --profile preview
+```
+
+**Production AAB** — for Google Play Store:
+```bash
+eas build -p android
+```
+
+> Requires an [Expo account](https://expo.dev) and EAS CLI: `npm install -g eas-cli`
+
+---
+
+## 📁 Project Structure
+
+```
+app/
+  (tabs)/
+    index.tsx       # 🏠 Home screen
+    search.tsx      # 🔍 Search screen
+    saved.tsx       # 🔖 Saved movies
+    watched.tsx     # 👁️ Watch history & ratings
+  movies/
+    [id].tsx        # 🎥 Movie detail screen
+components/
+  SearchBar.tsx
+  MovieCard.tsx
+  TrendingCard.tsx
+services/
+  api.ts            # TMDB API calls
+  useFetch.ts       # Generic data-fetching hook
+constants/
+  icons.ts
+  images.ts
+```
