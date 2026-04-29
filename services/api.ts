@@ -120,6 +120,88 @@ export const fetchMovieDetails = async (
   }
 };
 
+export const fetchUpcomingMovies = async (): Promise<Movie[]> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/movie/upcoming?page=1`,
+      { method: "GET", headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+    const data = await response.json();
+    return data.results;
+  } catch (err: any) {
+    if (err.name === "TypeError" && err.message.includes("Network request failed"))
+      throw new Error("Network error: Please check your internet connection.");
+    throw err instanceof Error ? err : new Error("Unexpected error occurred");
+  }
+};
+
+export const fetchPopularShows = async (): Promise<TVShow[]> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/tv/popular?page=1`,
+      { method: "GET", headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+    const data = await response.json();
+    return data.results;
+  } catch (err: any) {
+    if (err.name === "TypeError" && err.message.includes("Network request failed"))
+      throw new Error("Network error: Please check your internet connection.");
+    throw err instanceof Error ? err : new Error("Unexpected error occurred");
+  }
+};
+
+export const fetchTVShows = async ({ query }: { query: string }): Promise<TVShow[]> => {
+  const endpoint = query
+    ? `${TMDB_CONFIG.BASE_URL}/search/tv?query=${encodeURIComponent(query)}`
+    : `${TMDB_CONFIG.BASE_URL}/tv/popular?sort_by=popularity.desc`;
+  try {
+    const response = await fetch(endpoint, { method: "GET", headers: TMDB_CONFIG.headers });
+    if (!response.ok) {
+      let errorMessage = `Request failed with status ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.status_message) errorMessage += `: ${errorData.status_message}`;
+      } catch {}
+      throw new Error(errorMessage);
+    }
+    const data = await response.json();
+    return data.results;
+  } catch (err: any) {
+    if (err.name === "TypeError" && err.message.includes("Network request failed"))
+      throw new Error("Network error: Please check your internet connection.");
+    throw err instanceof Error ? err : new Error("Unexpected error occurred");
+  }
+};
+
+export const fetchTVShowBasicDetails = async (showId: string): Promise<TVShowDetails> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/tv/${showId}`,
+      { method: "GET", headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) throw new Error("Failed to fetch TV show details");
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchTVShowDetails = async (showId: string): Promise<TVShowDetails> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/tv/${showId}?append_to_response=credits,videos`,
+      { method: "GET", headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) throw new Error("Failed to fetch TV show details");
+    return await response.json();
+  } catch (error) {
+    console.log("Error in fetchTVShowDetails: ", error);
+    throw error;
+  }
+};
+
 export const fetchMonthlyMovies = async ({ query }: { query: string }) => {
   const { firstDay, lastDay, currentYear } = getCurrentMonthRange();
 

@@ -1,24 +1,42 @@
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StatusBar } from "react-native";
+import { Modal, StatusBar } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import './globals.css';
+import Onboarding from "@/components/Onboarding";
 
+const ONBOARDING_KEY = 'ONBOARDING_COMPLETE';
 
 export default function RootLayout() {
-  return(
-  <GestureHandlerRootView style={{ flex: 1 }}>
-  <StatusBar hidden={true}/>
-  <Stack>
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
-    <Stack.Screen
-    name="(tabs)"
-    options={{headerShown: false}}/>
+  useEffect(() => {
+    AsyncStorage.getItem(ONBOARDING_KEY).then((val) => {
+      setShowOnboarding(val === null);
+    });
+  }, []);
 
-    <Stack.Screen
-    name="movies/[id]"
-    options={{headerShown: false}}/>
+  const handleOnboardingComplete = async () => {
+    await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+    setShowOnboarding(false);
+  };
 
-  </Stack>
-  </GestureHandlerRootView>
-);
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar hidden={true} />
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="movies/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="shows/[id]" options={{ headerShown: false }} />
+      </Stack>
+      <Modal
+        visible={showOnboarding === true}
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <Onboarding onComplete={handleOnboardingComplete} />
+      </Modal>
+    </GestureHandlerRootView>
+  );
 }

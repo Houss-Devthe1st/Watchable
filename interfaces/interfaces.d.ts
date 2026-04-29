@@ -108,3 +108,56 @@ interface TrendingCardProps {
   movie: TrendingMovie;
   index: number;
 }
+
+interface Network {
+  id: number;
+  name: string;
+  logo_path: string | null;
+  origin_country: string;
+}
+
+interface TVShow {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  first_air_date: string;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  genre_ids: number[];
+  original_language: string;
+  original_name: string;
+}
+
+interface TVShowDetails {
+  id: number;
+  name: string;
+  original_name: string;
+  overview: string | null;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  first_air_date: string;
+  last_air_date: string;
+  status: string;
+  tagline: string | null;
+  homepage: string | null;
+  number_of_seasons: number;
+  number_of_episodes: number;
+  episode_run_time: number[];
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  original_language: string;
+  genres: Genre[];
+  networks: Network[];
+  production_companies: {
+    id: number;
+    logo_path: string | null;
+    name: string;
+    origin_country: string;
+  }[];
+  credits?: { cast: Cast[]; crew: Crew[] };
+  videos?: { results: Video[] };
+}

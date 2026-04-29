@@ -1,109 +1,139 @@
 import MovieCard from '@/components/MovieCard';
-import SearchBar from "@/components/SearchBar";
+import SearchBar from '@/components/SearchBar';
+import TVShowCard from '@/components/TVShowCard';
 import { icons } from '@/constants/icons';
 import { images } from '@/constants/images';
-import { fetchMovies } from '@/services/api';
-//import { updateSearchCount } from '@/services/appwrite';
+import { fetchMovies, fetchTVShows } from '@/services/api';
 import useFetch from '@/services/useFetch';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, ScrollView, Text, View } from 'react-native';
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  //custom hook
   const {
     data: movies,
-    loading,
-    error,
+    loading: moviesLoading,
+    error: moviesError,
     refetch: loadMovies,
-    //reset,
-  } = useFetch(() => fetchMovies({
-    query: searchQuery
-  }), false)
+  } = useFetch(() => fetchMovies({ query: searchQuery }), false);
 
+  const {
+    data: shows,
+    loading: showsLoading,
+    error: showsError,
+    refetch: loadShows,
+  } = useFetch(() => fetchTVShows({ query: searchQuery }), false);
 
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       if (searchQuery.trim()) {
-        await loadMovies();
+        await Promise.all([loadMovies(), loadShows()]);
       }
-    }, 500)
+    }, 500);
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  //BELOW function gets the results for each letter typed
-  //   useEffect(()=> {
-  //     const func = async() => {
-  //       if(searchQuery.trim()) {
-  //         await loadMovies();
-  //     } else {
-  //       reset()
-  //     }
-  //   }
-  //    func();
-  // },[searchQuery]);
-
-
-  ///appwrite function to get the count of a movie
-  // useEffect(() => {
-  //   if (movies?.length > 0 && movies?.[0]) {
-  //     updateSearchCount(searchQuery, movies[0]);
-  //   }
-  // }, [movies, searchQuery]);
-
-
+  const isLoading = moviesLoading || showsLoading;
+  const hasQuery = searchQuery.trim().length > 0;
 
   return (
-    <View className='flex-1 bg-primary'>
-      <Image source={images.bg} className='flex-1 absolute w-full z-0' resizeMode='cover' />
-      <FlatList
-        data={movies}
-        renderItem={({ item }) => <MovieCard {...item} />}
-        keyExtractor={(item) => item.id.toString()}
-        className='px-5'
-        numColumns={3}
-        columnWrapperStyle={
-          {
-            justifyContent: 'center',
-            gap: 16,
-            marginVertical: 16
-          }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        // {/*ListHeaderComponent: Whatever we put in the ListHeaderComponent will be added to the top */}
-        ListHeaderComponent={
-          <View>
-            <View className='w-full flex-row justify-center mt-20 items-center'>
-              <Image source={icons.moviesapp} className='w-16 h-16' />
-            </View>
+    <View className="flex-1 bg-primary">
+      <Image source={images.bg} className="flex-1 absolute w-full z-0" resizeMode="cover" />
+      <ScrollView
+        className="flex-1 px-5"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        {/* Header */}
+        <View className="w-full flex-row justify-center mt-20 items-center">
+          <Image source={icons.moviesapp} className="w-20 h-20" />
+        </View>
+        <View className="my-5">
+          <SearchBar
+            placeholder="Search movies & TV shows..."
+            value={searchQuery}
+            onChangeText={(text: string) => setSearchQuery(text)}
+          />
+        </View>
 
-            <View className='my-5'>
-              <SearchBar placeholder='Search movies...'
-                value={searchQuery}
-                onChangeText={(text: string) => setSearchQuery(text)} />
-            </View>
+        {isLoading && (
+          <ActivityIndicator size="large" color="#A8B5DB" className="my-3" />
+        )}
+        {(moviesError || showsError) && (
+          <Text className="text-red-500 my-3">
+            Error: {moviesError?.message || showsError?.message}
+          </Text>
+        )}
 
-            {loading && (<ActivityIndicator size="large" color="#A8B5DB" className='my-3' />)}
-            {error && (<Text className='text-red-500 px-5 my-3'>Error: {error.message}</Text>)}
-            {!loading && !error && searchQuery.trim() && movies?.length > 0 && (
-              <Text className='text-xl text-white'>Search Results for{' '}
-                <Text className='text-accent font-bold'>{searchQuery}</Text>
-              </Text>
+        {/* Results — only shown after a query */}
+        {hasQuery && !isLoading && (
+          <>
+            {/* Movies section */}
+            <Text className="text-xl text-white mb-3">
+              Movies{' '}
+              <Text className="text-accent font-bold">({movies?.length ?? 0})</Text>
+            </Text>
+            {movies && movies.length > 0 ? (
+              <FlatList
+                data={movies}
+                renderItem={({ item }) => <MovieCard {...item} />}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={3}
+                scrollEnabled={false}
+                columnWrapperStyle={{
+                  justifyContent: 'flex-start',
+                  gap: 16,
+                  marginBottom: 10,
+                }}
+              />
+            ) : (
+              <Text className="text-gray-500 text-center mb-6">No movies found</Text>
             )}
-          </View>
-        }
-        ListEmptyComponent={
-          !loading && !error ? (
-            <View className='mt-10 px-5'>
-              <Text className='text-center text-gray-500'>
-                {searchQuery.trim() ? 'Mmm...I Don\'t Think We Have That' : 'Search for a movie'}
-              </Text>
-            </View>
-          ) : null
-        }
-      />
-    </View>
-  )
-}
 
-export default Search
+            {/* TV Shows section */}
+            <Text className="text-xl text-white mb-3 mt-6">
+              TV Shows{' '}
+              <Text className="text-accent font-bold">({shows?.length ?? 0})</Text>
+            </Text>
+            {shows && shows.length > 0 ? (
+              <FlatList
+                data={shows}
+                renderItem={({ item }) => (
+                  <TVShowCard
+                    id={item.id}
+                    name={item.name}
+                    poster_path={item.poster_path}
+                    vote_average={item.vote_average}
+                    first_air_date={item.first_air_date}
+                  />
+                )}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={3}
+                scrollEnabled={false}
+                columnWrapperStyle={{
+                  justifyContent: 'flex-start',
+                  gap: 16,
+                  marginBottom: 10,
+                }}
+              />
+            ) : (
+              <Text className="text-gray-500 text-center mb-6">No TV shows found</Text>
+            )}
+          </>
+        )}
+
+        {/* Empty state */}
+        {!hasQuery && !isLoading && (
+          <View className="mt-10">
+            <Text className="text-center text-gray-500">
+              Search for a movie or TV show
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+};
+
+export default Search;
