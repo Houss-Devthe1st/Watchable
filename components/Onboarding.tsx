@@ -19,44 +19,62 @@ import Animated, {
 
 const SCREEN_W = Dimensions.get('window').width;
 
-const SLIDES = [
-  {
-    id: '1',
-    icon: icons.moviesapp,
-    title: 'Welcome to Watchable',
-    description:
-      'Your personal movie companion. Discover new films, save your favourites, and track everything you watch.',
-    iconSize: 88,
-    tintColor: undefined,
-  },
-  {
-    id: '2',
-    icon: icons.home,
-    title: 'Browse & Discover',
-    description:
-      "Explore trending releases and the latest movies. Filter by genre to find exactly what you're in the mood for.",
-    iconSize: 58,
-    tintColor: '#fff' as const,
-  },
-  {
-    id: '3',
-    icon: icons.save,
-    title: 'Save for Later',
-    description:
-      'Bookmark any movie with one tap. Your personal watch-later list is always ready when you are.',
-    iconSize: 58,
-    tintColor: '#fff' as const,
-  },
-  {
-    id: '4',
-    icon: icons.play,
-    title: 'Track & Rate',
-    description:
-      'Mark movies as watched and rate them 1–5 stars. See your total watch time and personal stats.',
-    iconSize: 52,
-    tintColor: '#fff' as const,
-  },
-];
+const SLIDES: {
+  id: string;
+  icon: any;
+  emoji?: string;
+  title: string;
+  description: string;
+  iconSize: number;
+  tintColor: string | undefined;
+}[] = [
+    {
+      id: '1',
+      icon: icons.moviesapp,
+      title: 'Welcome to Watchable',
+      description:
+        'Your personal movie/TV show companion. Discover new films, save your favourites, and track everything you watch.',
+      iconSize: 88,
+      tintColor: undefined,
+    },
+    {
+      id: '2',
+      icon: icons.home,
+      title: 'Browse & Discover',
+      description:
+        "Explore trending releases and the latest movies and TV shows. Filter by genre to find exactly what you're in the mood for.",
+      iconSize: 58,
+      tintColor: '#fff' as const,
+    },
+    {
+      id: '3',
+      icon: icons.save,
+      title: 'Save for Later',
+      description:
+        'Bookmark any movie or TV show with one tap. Your personal watch-later list is always ready when you are.',
+      iconSize: 58,
+      tintColor: '#fff' as const,
+    },
+    {
+      id: '4',
+      icon: icons.play,
+      title: 'Track & Rate',
+      description:
+        'Mark movies and TV shows as watched and rate them 1–5 stars. See your total watch time and personal stats.',
+      iconSize: 52,
+      tintColor: '#fff' as const,
+    },
+    {
+      id: '5',
+      icon: null,
+      emoji: '🔔',
+      title: 'Stay in the Loop',
+      description:
+        "Get notified when upcoming movies drop or your favourite shows have a new episode. Never miss a release.",
+      iconSize: 64,
+      tintColor: undefined,
+    },
+  ];
 
 const Dot = ({ active }: { active: boolean }) => {
   const width = useSharedValue(active ? 24 : 8);
@@ -140,11 +158,15 @@ export default function Onboarding({ onComplete }: Props) {
           <View style={styles.slide}>
             <View style={styles.glowOuter}>
               <View style={styles.glowInner}>
-                <Image
-                  source={item.icon}
-                  style={{ width: item.iconSize, height: item.iconSize, resizeMode: 'contain' }}
-                  tintColor={item.tintColor}
-                />
+                {item.emoji ? (
+                  <Text style={{ fontSize: item.iconSize }}>{item.emoji}</Text>
+                ) : (
+                  <Image
+                    source={item.icon}
+                    style={{ width: item.iconSize, height: item.iconSize, resizeMode: 'contain' }}
+                    tintColor={item.tintColor}
+                  />
+                )}
               </View>
             </View>
             <Text style={styles.title}>{item.title}</Text>

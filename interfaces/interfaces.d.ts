@@ -160,4 +160,11 @@ interface TVShowDetails {
   }[];
   credits?: { cast: Cast[]; crew: Crew[] };
   videos?: { results: Video[] };
+  next_episode_to_air: {
+    id: number;
+    name: string;
+    air_date: string;
+    episode_number: number;
+    season_number: number;
+  } | null;
 }

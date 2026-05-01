@@ -1,10 +1,15 @@
 import { icons } from '@/constants/icons';
 import { fetchTVShowDetails } from '@/services/api';
+import {
+  isShowNotificationSet,
+  requestPermissions,
+  toggleShowNotification,
+} from '@/services/notifications';
 import useFetch from '@/services/useFetch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tailwind from 'tailwind-react-native-classnames';
 import YoutubeIframe from 'react-native-youtube-iframe';
 
@@ -39,16 +44,18 @@ const ShowDetails = () => {
 
   const [saved, setSaved] = useState(false);
   const [watched, setWatched] = useState(false);
+  const [notified, setNotified] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const scale = useSharedValue(1);
 
   useEffect(() => {
     const loadState = async () => {
       try {
-        const [savedRaw, watchedRaw, ratingsRaw] = await Promise.all([
+        const [savedRaw, watchedRaw, ratingsRaw, notifSet] = await Promise.all([
           AsyncStorage.getItem(SAVED_SHOWS_KEY),
           AsyncStorage.getItem(WATCHED_SHOWS_KEY),
           AsyncStorage.getItem(SHOW_RATINGS_KEY),
+          isShowNotificationSet(Number(id)),
         ]);
         if (savedRaw) setSaved((JSON.parse(savedRaw) as string[]).includes(id as string));
         if (watchedRaw) setWatched((JSON.parse(watchedRaw) as string[]).includes(id as string));
@@ -56,6 +63,7 @@ const ShowDetails = () => {
           const ratings = JSON.parse(ratingsRaw) as Record<string, number>;
           setUserRating(ratings[id as string] ?? 0);
         }
+        setNotified(notifSet);
       } catch (e) {
         console.log('Error loading show state', e);
       }
@@ -119,6 +127,20 @@ const ShowDetails = () => {
     } catch (e) {
       console.log('Error saving rating', e);
     }
+  };
+
+  const handleNotifyPress = async () => {
+    const granted = await requestPermissions();
+    if (!granted) {
+      Alert.alert('Permission needed', 'Enable notifications in your device settings.');
+      return;
+    }
+    const isNowSet = await toggleShowNotification(
+      Number(id),
+      show?.name ?? '',
+      show?.next_episode_to_air?.air_date ?? null
+    );
+    setNotified(isNowSet);
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -268,6 +290,22 @@ const ShowDetails = () => {
             {watched ? 'Watched!' : 'Mark as Watched'}
           </Text>
         </TouchableOpacity>
+
+        {/* Notify on new episode — only if next episode air date is in the future */}
+        {show?.next_episode_to_air?.air_date &&
+          new Date(show.next_episode_to_air.air_date) > new Date() && (
+          <TouchableOpacity
+            className={`mx-5 mt-3 rounded-lg py-3.5 flex-row items-center justify-center ${
+              notified ? 'bg-amber-800' : 'bg-slate-800'
+            }`}
+            onPress={handleNotifyPress}
+          >
+            <Text className="text-lg mr-2">{notified ? '🔔' : '🔕'}</Text>
+            <Text className="text-white font-medium">
+              {notified ? 'Reminder set!' : 'Notify me on new episode'}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Star rating */}
         {watched && (

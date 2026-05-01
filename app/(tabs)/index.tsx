@@ -5,6 +5,7 @@ import TrendingCard from "@/components/TrendingCard";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { fetchGenres, fetchMonthlyMovies, fetchMovies, fetchPopularShows, fetchUpcomingMovies } from "@/services/api";
+import { checkMonthlyMoviesUpdate } from "@/services/notifications";
 import useFetch from "@/services/useFetch";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -54,6 +55,14 @@ export default function Index() {
     refetchMovies();
   }, [selectedGenreId]);
 
+  // Check for new monthly releases and notify if setting is enabled
+  useEffect(() => {
+    if (Monthlymovies && Monthlymovies.length > 0) {
+      const ids = Monthlymovies.map((m: TrendingMovie) => m.movie_id);
+      checkMonthlyMoviesUpdate(ids).catch(() => {});
+    }
+  }, [Monthlymovies]);
+
   const handleGenrePress = (genreId: number | null) => {
     setSelectedGenreId(genreId === selectedGenreId ? null : genreId);
   };
@@ -66,7 +75,15 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ minHeight: "100%", paddingBottom: 120 }}
       >
-        <Image source={icons.moviesapp} className="w-20 h-20 mt-12 mb-5 mx-auto" />
+        <View className="relative items-center">
+          <Image source={icons.moviesapp} className="w-20 h-20 mt-12 mb-5 mx-auto" />
+          <TouchableOpacity
+            onPress={() => router.push('/settings' as any)}
+            className="absolute right-0 top-12 p-2"
+          >
+            <Text className="text-gray-400 text-2xl">⚙️</Text>
+          </TouchableOpacity>
+        </View>
 
         {moviesLoading || monthlyMoviesLoading || upcomingLoading || showsLoading ? (
           <ActivityIndicator size="large" color="#A8B5DB" className="mt-10 self-center" />

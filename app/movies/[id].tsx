@@ -1,10 +1,15 @@
 import { icons } from '@/constants/icons';
 import { fetchMovieDetails } from '@/services/api';
+import {
+  isMovieNotificationSet,
+  requestPermissions,
+  toggleMovieNotification,
+} from '@/services/notifications';
 import useFetch from '@/services/useFetch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from "react";
-import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tailwind from 'tailwind-react-native-classnames';
 import YoutubeIframe from 'react-native-youtube-iframe';
 
@@ -46,6 +51,7 @@ const MovieDetails = () => {
 
   const [saved, setSaved] = useState(false);
   const [watched, setWatched] = useState(false);
+  const [notified, setNotified] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const scale = useSharedValue(1);
 
@@ -53,10 +59,11 @@ const MovieDetails = () => {
   useEffect(() => {
     const loadState = async () => {
       try {
-        const [savedRaw, watchedRaw, ratingsRaw] = await Promise.all([
+        const [savedRaw, watchedRaw, ratingsRaw, notifSet] = await Promise.all([
           AsyncStorage.getItem(SAVED_MOVIES_KEY),
           AsyncStorage.getItem(WATCHED_MOVIES_KEY),
           AsyncStorage.getItem(MOVIE_RATINGS_KEY),
+          isMovieNotificationSet(Number(id)),
         ]);
         if (savedRaw) setSaved((JSON.parse(savedRaw) as string[]).includes(id as string));
         if (watchedRaw) setWatched((JSON.parse(watchedRaw) as string[]).includes(id as string));
@@ -64,6 +71,7 @@ const MovieDetails = () => {
           const ratings = JSON.parse(ratingsRaw) as Record<string, number>;
           setUserRating(ratings[id as string] ?? 0);
         }
+        setNotified(notifSet);
       } catch (e) {
         console.log('Error loading movie state', e);
       }
@@ -128,6 +136,20 @@ const MovieDetails = () => {
     } catch (e) {
       console.log('Error saving rating', e);
     }
+  };
+
+  const handleNotifyPress = async () => {
+    const granted = await requestPermissions();
+    if (!granted) {
+      Alert.alert('Permission needed', 'Enable notifications in your device settings.');
+      return;
+    }
+    const isNowSet = await toggleMovieNotification(
+      Number(id),
+      movie?.title ?? '',
+      movie?.release_date ?? ''
+    );
+    setNotified(isNowSet);
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -271,6 +293,21 @@ const MovieDetails = () => {
             {watched ? "Watched!" : "Mark as Watched"}
           </Text>
         </TouchableOpacity>
+
+        {/* Notify on release — only for upcoming movies */}
+        {movie?.release_date && new Date(movie.release_date) > new Date() && (
+          <TouchableOpacity
+            className={`mx-5 mt-3 rounded-lg py-3.5 flex-row items-center justify-center ${
+              notified ? 'bg-amber-800' : 'bg-slate-800'
+            }`}
+            onPress={handleNotifyPress}
+          >
+            <Text className="text-lg mr-2">{notified ? '🔔' : '🔕'}</Text>
+            <Text className="text-white font-medium">
+              {notified ? 'Reminder set!' : 'Notify me on release'}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Star rating — only visible after marking watched */}
         {watched && (

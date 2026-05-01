@@ -128,7 +128,8 @@ export const fetchUpcomingMovies = async (): Promise<Movie[]> => {
     );
     if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
     const data = await response.json();
-    return data.results;
+    const today = new Date().toISOString().split('T')[0];
+    return (data.results as Movie[]).filter((m) => m.release_date >= today);
   } catch (err: any) {
     if (err.name === "TypeError" && err.message.includes("Network request failed"))
       throw new Error("Network error: Please check your internet connection.");
