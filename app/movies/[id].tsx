@@ -1,5 +1,5 @@
 import { icons } from '@/constants/icons';
-import { fetchMovieDetails } from '@/services/api';
+import { fetchMovieDetails, fetchMovieWatchProviders } from '@/services/api';
 import {
   isMovieNotificationSet,
   requestPermissions,
@@ -9,7 +9,7 @@ import useFetch from '@/services/useFetch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from "react";
-import { Alert, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tailwind from 'tailwind-react-native-classnames';
 import YoutubeIframe from 'react-native-youtube-iframe';
 
@@ -41,29 +41,32 @@ const MovieInfo = ({ label, value }: MovieInfoProps) => (
 const SAVED_MOVIES_KEY = 'SAVED_MOVIES';
 const WATCHED_MOVIES_KEY = 'WATCHED_MOVIES';
 const MOVIE_RATINGS_KEY = 'MOVIE_RATINGS';
+const MOVIE_COMMENTS_KEY = 'MOVIE_COMMENTS';
 
 const MovieDetails = () => {
 
   const { id } = useLocalSearchParams();
 
-  const { data: movie } = useFetch(() =>
-    fetchMovieDetails(id as string));
+  const { data: movie } = useFetch(() => fetchMovieDetails(id as string));
+  const { data: watchProviders } = useFetch(() => fetchMovieWatchProviders(id as string));
 
   const [saved, setSaved] = useState(false);
   const [watched, setWatched] = useState(false);
   const [notified, setNotified] = useState(false);
   const [userRating, setUserRating] = useState(0);
+  const [comment, setComment] = useState('');
   const scale = useSharedValue(1);
 
   // Load saved, watched, and rating state
   useEffect(() => {
     const loadState = async () => {
       try {
-        const [savedRaw, watchedRaw, ratingsRaw, notifSet] = await Promise.all([
+        const [savedRaw, watchedRaw, ratingsRaw, notifSet, commentsRaw] = await Promise.all([
           AsyncStorage.getItem(SAVED_MOVIES_KEY),
           AsyncStorage.getItem(WATCHED_MOVIES_KEY),
           AsyncStorage.getItem(MOVIE_RATINGS_KEY),
           isMovieNotificationSet(Number(id)),
+          AsyncStorage.getItem(MOVIE_COMMENTS_KEY),
         ]);
         if (savedRaw) setSaved((JSON.parse(savedRaw) as string[]).includes(id as string));
         if (watchedRaw) setWatched((JSON.parse(watchedRaw) as string[]).includes(id as string));
@@ -72,6 +75,10 @@ const MovieDetails = () => {
           setUserRating(ratings[id as string] ?? 0);
         }
         setNotified(notifSet);
+        if (commentsRaw) {
+          const comments = JSON.parse(commentsRaw) as Record<string, string>;
+          setComment(comments[id as string] ?? '');
+        }
       } catch (e) {
         console.log('Error loading movie state', e);
       }
@@ -105,12 +112,16 @@ const MovieDetails = () => {
       let watchedIds: string[] = watchedRaw ? JSON.parse(watchedRaw) : [];
       if (watched) {
         watchedIds = watchedIds.filter((movieId) => movieId !== id);
-        // Clear rating when unmarking
         const ratingsRaw = await AsyncStorage.getItem(MOVIE_RATINGS_KEY);
         const ratings: Record<string, number> = ratingsRaw ? JSON.parse(ratingsRaw) : {};
         delete ratings[id as string];
         await AsyncStorage.setItem(MOVIE_RATINGS_KEY, JSON.stringify(ratings));
         setUserRating(0);
+        const commentsRaw = await AsyncStorage.getItem(MOVIE_COMMENTS_KEY);
+        const comments: Record<string, string> = commentsRaw ? JSON.parse(commentsRaw) : {};
+        delete comments[id as string];
+        await AsyncStorage.setItem(MOVIE_COMMENTS_KEY, JSON.stringify(comments));
+        setComment('');
       } else {
         watchedIds.push(id as string);
       }
@@ -118,6 +129,21 @@ const MovieDetails = () => {
       setWatched(!watched);
     } catch (e) {
       console.log('Error toggling watched', e);
+    }
+  };
+
+  const handleCommentSave = async (text: string) => {
+    try {
+      const raw = await AsyncStorage.getItem(MOVIE_COMMENTS_KEY);
+      const comments: Record<string, string> = raw ? JSON.parse(raw) : {};
+      if (text.trim()) {
+        comments[id as string] = text.trim();
+      } else {
+        delete comments[id as string];
+      }
+      await AsyncStorage.setItem(MOVIE_COMMENTS_KEY, JSON.stringify(comments));
+    } catch (e) {
+      console.log('Error saving comment', e);
     }
   };
 
@@ -264,6 +290,43 @@ const MovieDetails = () => {
           </View>
         )}
 
+        {/* Where to Watch */}
+        {(watchProviders?.flatrate?.length || watchProviders?.rent?.length) ? (
+          <View className='mt-6 px-5'>
+            <Text className='text-white font-bold text-base mb-3'>Where to Watch</Text>
+            {watchProviders?.flatrate && watchProviders.flatrate.length > 0 && (
+              <>
+                <Text className='text-gray-500 text-xs mb-2 uppercase tracking-wide'>Stream</Text>
+                <View className='flex-row flex-wrap gap-2 mb-3'>
+                  {watchProviders.flatrate.map((p) => (
+                    <Image
+                      key={p.provider_id}
+                      source={{ uri: `https://image.tmdb.org/t/p/w92${p.logo_path}` }}
+                      className='w-10 h-10 rounded-lg'
+                      resizeMode='cover'
+                    />
+                  ))}
+                </View>
+              </>
+            )}
+            {watchProviders?.rent && watchProviders.rent.length > 0 && (
+              <>
+                <Text className='text-gray-500 text-xs mb-2 uppercase tracking-wide'>Rent</Text>
+                <View className='flex-row flex-wrap gap-2'>
+                  {watchProviders.rent.map((p) => (
+                    <Image
+                      key={p.provider_id}
+                      source={{ uri: `https://image.tmdb.org/t/p/w92${p.logo_path}` }}
+                      className='w-10 h-10 rounded-lg'
+                      resizeMode='cover'
+                    />
+                  ))}
+                </View>
+              </>
+            )}
+          </View>
+        ) : null}
+
         {/* Action buttons */}
         <AnimatedTouchable
           style={[
@@ -309,7 +372,7 @@ const MovieDetails = () => {
           </TouchableOpacity>
         )}
 
-        {/* Star rating — only visible after marking watched */}
+        {/* Star rating + notes — only visible after marking watched */}
         {watched && (
           <View className='mx-5 mt-3 bg-slate-900 rounded-lg py-3 px-4'>
             <Text className='text-gray-400 text-xs mb-2 text-center'>Your rating</Text>
@@ -317,6 +380,7 @@ const MovieDetails = () => {
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity key={star} onPress={() => handleRating(star)}>
                   <Image
+                    key={`star-${star}-${userRating}`}
                     source={icons.star}
                     className='size-7'
                     tintColor={star <= userRating ? '#FACC15' : '#374151'}
@@ -324,6 +388,22 @@ const MovieDetails = () => {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+        )}
+
+        {watched && (
+          <View className='mx-5 mt-3 bg-slate-900 rounded-lg py-3 px-4'>
+            <Text className='text-gray-400 text-xs mb-2'>Your notes</Text>
+            <TextInput
+              multiline
+              placeholder="What did you think?"
+              placeholderTextColor="#4B5563"
+              value={comment}
+              onChangeText={setComment}
+              onEndEditing={(e) => handleCommentSave(e.nativeEvent.text)}
+              className='text-white text-sm'
+              style={{ minHeight: 56 }}
+            />
           </View>
         )}
 

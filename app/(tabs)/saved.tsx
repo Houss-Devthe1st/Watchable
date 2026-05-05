@@ -1,7 +1,7 @@
 import { icons } from '@/constants/icons';
 import { fetchMovieBasicDetails, fetchTVShowBasicDetails } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link, useFocusEffect } from 'expo-router';
+import { Link, router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +12,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const SAVED_MOVIES_KEY = 'SAVED_MOVIES';
 const SAVED_SHOWS_KEY = 'SAVED_SHOWS';
@@ -182,19 +191,49 @@ const Saved = () => {
     </Link>
   );
 
+  const diceRotation = useSharedValue(0);
+  const buttonScale = useSharedValue(1);
+
+  const animatedDiceStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${diceRotation.value}deg` }],
+  }));
+
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
+  const handleSurprise = () => {
+    const pool = activeFilter === 'movies' ? savedMovies : savedShows;
+    if (pool.length === 0) return;
+    const item = pool[Math.floor(Math.random() * pool.length)];
+
+    const navigate = () =>
+      router.push(
+        activeFilter === 'movies' ? (`/movies/${item.id}` as any) : (`/shows/${item.id}` as any)
+      );
+
+    buttonScale.value = withSequence(
+      withTiming(0.92, { duration: 80 }),
+      withTiming(1, { duration: 120 })
+    );
+    diceRotation.value = withTiming(360, { duration: 480 }, (finished) => {
+      if (finished) runOnJS(navigate)();
+    });
+  };
+
   const isMovies = activeFilter === 'movies';
   const activeData = isMovies ? savedMovies : savedShows;
 
   return (
     <View className="bg-primary flex-1 px-5">
       {/* Header */}
-      <View className="flex justify-center items-center flex-col gap-2 mt-14 mb-4">
-        <Image source={icons.save} className="size-8" tintColor="#fff" />
-        <Text className="text-gray-500 text-base">Watch Later</Text>
+      <View className="flex-row items-center gap-x-2 mt-14 mb-4">
+        <Image source={icons.save} className="size-5" tintColor="#fff" />
+        <Text className="text-white text-lg font-bold">Watch Later</Text>
       </View>
 
       {/* Filter chips */}
-      <View className="flex-row gap-x-2 mb-4">
+      <View className="flex-row gap-x-2 mb-3">
         {(['movies', 'shows'] as const).map((filter) => (
           <TouchableOpacity
             key={filter}
@@ -216,6 +255,20 @@ const Saved = () => {
         ))}
       </View>
 
+      {/* Surprise me — only when list has items */}
+      {!loading && activeData.length > 0 && (
+        <AnimatedTouchable
+          onPress={handleSurprise}
+          style={animatedButtonStyle}
+          className='bg-indigo-900 rounded-xl py-2.5 flex-row items-center justify-center mb-3'
+        >
+          <Animated.View style={animatedDiceStyle}>
+            <Text style={{ fontSize: 18, marginRight: 8 }}>🎲</Text>
+          </Animated.View>
+          <Text className='text-white font-semibold'>Surprise me</Text>
+        </AnimatedTouchable>
+      )}
+
       {loading ? (
         <ActivityIndicator size="large" color="#A8B5DB" className="mt-10 self-center" />
       ) : activeData.length === 0 ? (
@@ -233,7 +286,7 @@ const Saved = () => {
       ) : (
         <FlatList
           data={activeData as any[]}
-          renderItem={isMovies ? renderMovie : renderShow}
+          renderItem={(isMovies ? renderMovie : renderShow) as any}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={

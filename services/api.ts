@@ -203,6 +203,68 @@ export const fetchTVShowDetails = async (showId: string): Promise<TVShowDetails>
   }
 };
 
+export const fetchMovieWatchProviders = async (
+  movieId: string,
+  region = 'US'
+): Promise<WatchProviders | null> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/movie/${movieId}/watch/providers`,
+      { method: 'GET', headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.results?.[region] ?? null;
+  } catch {
+    return null;
+  }
+};
+
+export const fetchTVShowWatchProviders = async (
+  showId: string,
+  region = 'US'
+): Promise<WatchProviders | null> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/tv/${showId}/watch/providers`,
+      { method: 'GET', headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.results?.[region] ?? null;
+  } catch {
+    return null;
+  }
+};
+
+export const fetchMovieRecommendations = async (movieId: string): Promise<Movie[]> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/movie/${movieId}/recommendations`,
+      { method: 'GET', headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.results ?? [];
+  } catch {
+    return [];
+  }
+};
+
+export const fetchTVShowRecommendations = async (showId: string): Promise<TVShow[]> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/tv/${showId}/recommendations`,
+      { method: 'GET', headers: TMDB_CONFIG.headers }
+    );
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.results ?? [];
+  } catch {
+    return [];
+  }
+};
+
 export const fetchMonthlyMovies = async ({ query }: { query: string }) => {
   const { firstDay, lastDay, currentYear } = getCurrentMonthRange();
 

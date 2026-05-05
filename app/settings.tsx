@@ -33,15 +33,15 @@ export default function Settings() {
     await AsyncStorage.setItem(SETTING_MONTHLY_NOTIF_KEY, value ? 'true' : 'false');
   };
 
-  const handleTestNotification = async () => {
-    const granted = await requestPermissions();
-    if (!granted) {
-      Alert.alert('Permission needed', 'Enable notifications in your device settings.');
-      return;
-    }
-    await sendTestNotification();
-    Alert.alert('Test sent', 'Minimize the app — notification arrives in 3 seconds.');
-  };
+  // const handleTestNotification = async () => {
+  //   const granted = await requestPermissions();
+  //   if (!granted) {
+  //     Alert.alert('Permission needed', 'Enable notifications in your device settings.');
+  //     return;
+  //   }
+  //   await sendTestNotification();
+  //   Alert.alert('Test sent', 'Minimize the app — notification arrives in 3 seconds.');
+  // };
 
   return (
     <View className="bg-primary flex-1 px-5">
@@ -71,12 +71,12 @@ export default function Settings() {
         </View>
       </View>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={handleTestNotification}
         className="bg-indigo-900 rounded-xl py-3.5 items-center mt-2"
       >
         <Text className="text-white font-semibold">Send Test Notification</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }

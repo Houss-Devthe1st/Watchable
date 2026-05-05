@@ -168,3 +168,17 @@ interface TVShowDetails {
     season_number: number;
   } | null;
 }
+
+interface WatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority: number;
+}
+
+interface WatchProviders {
+  link?: string;
+  flatrate?: WatchProvider[];
+  rent?: WatchProvider[];
+  buy?: WatchProvider[];
+}
