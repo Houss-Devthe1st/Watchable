@@ -1,3 +1,5 @@
+import { CurtainProvider } from '@/components/CurtainContext';
+import Onboarding from '@/components/Onboarding';
 import { setupNotifications } from '@/services/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
@@ -6,7 +8,6 @@ import { useEffect, useState } from 'react';
 import { Modal, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import './globals.css';
-import Onboarding from '@/components/Onboarding';
 
 const ONBOARDING_KEY = 'ONBOARDING_COMPLETE';
 
@@ -47,20 +48,22 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar hidden={true} />
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="movies/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="shows/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="settings" options={{ headerShown: false }} />
-      </Stack>
-      <Modal
-        visible={showOnboarding === true}
-        animationType="fade"
-        statusBarTranslucent
-      >
-        <Onboarding onComplete={handleOnboardingComplete} />
-      </Modal>
+      <CurtainProvider>
+        <StatusBar hidden={true} />
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="movies/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="shows/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ headerShown: false }} />
+        </Stack>
+        <Modal
+          visible={showOnboarding === true}
+          animationType="fade"
+          statusBarTranslucent
+        >
+          <Onboarding onComplete={handleOnboardingComplete} />
+        </Modal>
+      </CurtainProvider>
     </GestureHandlerRootView>
   );
 }

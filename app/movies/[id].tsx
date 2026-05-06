@@ -1,3 +1,4 @@
+import { useCurtain } from '@/components/CurtainContext';
 import { icons } from '@/constants/icons';
 import { fetchMovieDetails, fetchMovieWatchProviders } from '@/services/api';
 import {
@@ -46,9 +47,12 @@ const MOVIE_COMMENTS_KEY = 'MOVIE_COMMENTS';
 const MovieDetails = () => {
 
   const { id } = useLocalSearchParams();
+  const { open } = useCurtain();
 
   const { data: movie } = useFetch(() => fetchMovieDetails(id as string));
   const { data: watchProviders } = useFetch(() => fetchMovieWatchProviders(id as string));
+
+  useEffect(() => { open(); }, [open]);
 
   const [saved, setSaved] = useState(false);
   const [watched, setWatched] = useState(false);

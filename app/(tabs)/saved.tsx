@@ -12,15 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
-
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+import { useCurtain } from '@/components/CurtainContext';
 
 const SAVED_MOVIES_KEY = 'SAVED_MOVIES';
 const SAVED_SHOWS_KEY = 'SAVED_SHOWS';
@@ -191,34 +183,17 @@ const Saved = () => {
     </Link>
   );
 
-  const diceRotation = useSharedValue(0);
-  const buttonScale = useSharedValue(1);
-
-  const animatedDiceStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${diceRotation.value}deg` }],
-  }));
-
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
+  const { close } = useCurtain();
 
   const handleSurprise = () => {
     const pool = activeFilter === 'movies' ? savedMovies : savedShows;
     if (pool.length === 0) return;
     const item = pool[Math.floor(Math.random() * pool.length)];
-
-    const navigate = () =>
+    close(() =>
       router.push(
         activeFilter === 'movies' ? (`/movies/${item.id}` as any) : (`/shows/${item.id}` as any)
-      );
-
-    buttonScale.value = withSequence(
-      withTiming(0.92, { duration: 80 }),
-      withTiming(1, { duration: 120 })
+      )
     );
-    diceRotation.value = withTiming(360, { duration: 480 }, (finished) => {
-      if (finished) runOnJS(navigate)();
-    });
   };
 
   const isMovies = activeFilter === 'movies';
@@ -257,16 +232,13 @@ const Saved = () => {
 
       {/* Surprise me — only when list has items */}
       {!loading && activeData.length > 0 && (
-        <AnimatedTouchable
+        <TouchableOpacity
           onPress={handleSurprise}
-          style={animatedButtonStyle}
           className='bg-indigo-900 rounded-xl py-2.5 flex-row items-center justify-center mb-3'
         >
-          <Animated.View style={animatedDiceStyle}>
-            <Text style={{ fontSize: 18, marginRight: 8 }}>🎲</Text>
-          </Animated.View>
+          <Text className='text-lg mr-2'>🎲</Text>
           <Text className='text-white font-semibold'>Surprise me</Text>
-        </AnimatedTouchable>
+        </TouchableOpacity>
       )}
 
       {loading ? (
