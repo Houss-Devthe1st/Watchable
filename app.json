@@ -4,7 +4,7 @@
     "slug": "MovieApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/MainIcon.png",
+    "icon": "./assets/icon/movies-app.png",
     "scheme": "movieapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -30,10 +30,13 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-notifications", {
-        "icon": "./assets/images/MainIcon.png",
-        "color": "#030014"
-      }],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/MainIcon.png",
+          "color": "#030014"
+        }
+      ],
       [
         "expo-splash-screen",
         {

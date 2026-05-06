@@ -7,15 +7,24 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_MOVIE_API_KEY": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZjU2ZTYzNDZlMzU2Yjc2M2M2OTkyZWJjODRiZmJjNyIsIm5iZiI6MTc1NjI4MTA5MC43NTQsInN1YiI6IjY4YWViOTAyNjk5ZGZiOTNlMGZhOTAzNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.QnUpw6c6iqyi9wWjZp1LabbbYT4xWd3HIQDitAR5XFg"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_MOVIE_API_KEY": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZjU2ZTYzNDZlMzU2Yjc2M2M2OTkyZWJjODRiZmJjNyIsIm5iZiI6MTc1NjI4MTA5MC43NTQsInN1YiI6IjY4YWViOTAyNjk5ZGZiOTNlMGZhOTAzNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.QnUpw6c6iqyi9wWjZp1LabbbYT4xWd3HIQDitAR5XFg"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_MOVIE_API_KEY": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZjU2ZTYzNDZlMzU2Yjc2M2M2OTkyZWJjODRiZmJjNyIsIm5iZiI6MTc1NjI4MTA5MC43NTQsInN1YiI6IjY4YWViOTAyNjk5ZGZiOTNlMGZhOTAzNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.QnUpw6c6iqyi9wWjZp1LabbbYT4xWd3HIQDitAR5XFg"
+      }
     }
   },
   "submit": {
