@@ -9,8 +9,8 @@ import {
 import useFetch from '@/services/useFetch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from "react";
-import { Alert, FlatList, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from "react";
+import { Alert, FlatList, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tailwind from 'tailwind-react-native-classnames';
 import YoutubeIframe from 'react-native-youtube-iframe';
 
@@ -59,7 +59,9 @@ const MovieDetails = () => {
   const [notified, setNotified] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [savedComment, setSavedComment] = useState('');
   const scale = useSharedValue(1);
+  const scrollRef = useRef<ScrollView>(null);
 
   // Load saved, watched, and rating state
   useEffect(() => {
@@ -81,7 +83,9 @@ const MovieDetails = () => {
         setNotified(notifSet);
         if (commentsRaw) {
           const comments = JSON.parse(commentsRaw) as Record<string, string>;
-          setComment(comments[id as string] ?? '');
+          const loaded = comments[id as string] ?? '';
+          setComment(loaded);
+          setSavedComment(loaded);
         }
       } catch (e) {
         console.log('Error loading movie state', e);
@@ -126,6 +130,7 @@ const MovieDetails = () => {
         delete comments[id as string];
         await AsyncStorage.setItem(MOVIE_COMMENTS_KEY, JSON.stringify(comments));
         setComment('');
+        setSavedComment('');
       } else {
         watchedIds.push(id as string);
       }
@@ -146,6 +151,7 @@ const MovieDetails = () => {
         delete comments[id as string];
       }
       await AsyncStorage.setItem(MOVIE_COMMENTS_KEY, JSON.stringify(comments));
+      setSavedComment(text.trim());
     } catch (e) {
       console.log('Error saving comment', e);
     }
@@ -198,8 +204,16 @@ const MovieDetails = () => {
   const director = movie?.credits?.crew?.find((c) => c.job === 'Director');
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
     <View className='bg-primary flex-1'>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        keyboardShouldPersistTaps="handled"
+      >
         <View>
           <Image source={{ uri: `https://image.tmdb.org/t/p/w500${movie?.poster_path}` }} className='w-full h-[550px]' resizeMode='stretch' />
         </View>
@@ -404,10 +418,23 @@ const MovieDetails = () => {
               placeholderTextColor="#4B5563"
               value={comment}
               onChangeText={setComment}
-              onEndEditing={(e) => handleCommentSave(e.nativeEvent.text)}
+              onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150)}
               className='text-white text-sm'
               style={{ minHeight: 56 }}
             />
+            <TouchableOpacity
+              onPress={() => handleCommentSave(comment)}
+              disabled={comment.trim() === savedComment}
+              className='mt-3 rounded-lg py-2 items-center'
+              style={{ backgroundColor: comment.trim() === savedComment ? '#1e293b' : '#312e81' }}
+            >
+              <Text
+                className='text-sm font-semibold'
+                style={{ color: comment.trim() === savedComment ? '#4B5563' : '#fff' }}
+              >
+                {savedComment ? 'Update note' : 'Save note'}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -421,6 +448,7 @@ const MovieDetails = () => {
         </Text>
       </TouchableOpacity>
     </View>
+    </KeyboardAvoidingView>
   )
 }
 

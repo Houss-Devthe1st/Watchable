@@ -4,7 +4,7 @@
     "slug": "MovieApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon/movies-app.png",
+    "icon": "./assets/images/MainIcon.png",
     "scheme": "movieapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -40,7 +40,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/MainIcon.png",
+          "image": "./assets/images/movie.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#000000"

@@ -19,9 +19,9 @@ Notifications.setNotificationHandler({
 
 export const setupNotifications = async () => {
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('watchable-default', {
+    await Notifications.setNotificationChannelAsync('watchable-alerts', {
       name: 'Watchable',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: Notifications.AndroidImportance.HIGH,
     });
   }
 };
@@ -54,7 +54,7 @@ export const toggleMovieNotification = async (
     trigger: {
       type: SchedulableTriggerInputTypes.DATE,
       date: new Date(releaseMs),
-      channelId: 'watchable-default',
+      channelId: 'watchable-alerts',
     },
   });
   await AsyncStorage.setItem(key, notifId);
@@ -85,7 +85,7 @@ export const toggleShowNotification = async (
     trigger: {
       type: SchedulableTriggerInputTypes.DATE,
       date: new Date(airMs),
-      channelId: 'watchable-default',
+      channelId: 'watchable-alerts',
     },
   });
   await AsyncStorage.setItem(key, notifId);
@@ -119,7 +119,7 @@ export const checkMonthlyMoviesUpdate = async (currentMovieIds: number[]): Promi
       trigger: {
         type: SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: 1,
-        channelId: 'watchable-default',
+        channelId: 'watchable-alerts',
       },
     });
   }
@@ -135,7 +135,7 @@ export const sendTestNotification = async (): Promise<void> => {
     trigger: {
       type: SchedulableTriggerInputTypes.TIME_INTERVAL,
       seconds: 3,
-      channelId: 'watchable-default',
+      channelId: 'watchable-alerts',
     },
   });
 };
